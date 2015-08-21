@@ -1,0 +1,26 @@
+{
+  "name": "browser-express",
+  "version": "0.0.1",
+  "description": "Fast, unopinionated, minimalist browser framework",
+  "main": "src/js/index.js",
+  "scripts": {
+    "test": "npm run build && tapes test/**/*.js test/**/**/*.js | tap-spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/williamcotton/browser-express.git"
+  },
+  "keywords": [
+    "browser",
+    "express",
+    "universal",
+    "app",
+    "framework"
+  ],
+  "author": "William Cotton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/williamcotton/browser-express/issues"
+  },
+  "homepage": "https://github.com/williamcotton/browser-express#readme"
+}
