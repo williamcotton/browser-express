@@ -1,6 +1,8 @@
 # browser-express
 Fast, unopinionated, minimalist browser framework
 
+A browser version of [```express```](http://expressjs.com/) built with ```prouter```, a pushState routing engine.
+
 ## Getting Started
 
 ```npm install browser-express```
