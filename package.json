@@ -1,10 +1,10 @@
 {
   "name": "browser-express",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Fast, unopinionated, minimalist browser framework",
   "main": "src/js/index.js",
   "scripts": {
-    "test": "npm run build && tapes test/**/*.js test/**/**/*.js | tap-spec"
+    "test": "tapes test/**/*.js test/**/**/*.js | tap-spec"
   },
   "repository": {
     "type": "git",
@@ -22,5 +22,15 @@
   "bugs": {
     "url": "https://github.com/williamcotton/browser-express/issues"
   },
-  "homepage": "https://github.com/williamcotton/browser-express#readme"
+  "homepage": "https://github.com/williamcotton/browser-express#readme",
+  "devDependencies": {
+    "jsdom": "^3.1.2",
+    "tap-spec": "^4.1.0",
+    "tapes": "^2.0.0"
+  },
+  "dependencies": {
+    "async": "^1.4.2",
+    "ejs": "^2.3.3",
+    "prouter": "^2.1.6"
+  }
 }
