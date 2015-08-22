@@ -1,5 +1,4 @@
 var async = require("async");
-var ejs = require("ejs");
 
 var prouter = require("prouter");
 var Router = prouter.Router;
@@ -10,7 +9,7 @@ module.exports = function(options) {
 
   var stack = [];
 
-  store["views engine"] = "ejs";
+  var engines = {};
 
   var app = {
     get: function(route, handler) {
@@ -24,9 +23,9 @@ module.exports = function(options) {
             return options.document.body.innerHTML = content;
           },
           render: function(view, locals) {
-            if (store["views engine"] == "ejs") {
-              var content = ejs.render(view, locals, {});
-              return options.document.body.innerHTML = content;
+            if (store["views engine"]) {
+              var engineFunction = engines[store["views engine"]];
+              engineFunction(view, locals, options);
             }
           },
           setHeader: function() {}
@@ -40,6 +39,9 @@ module.exports = function(options) {
     },
     set: function(key, value) {
       store[key] = value;
+    },
+    engine: function(engineKey, fn) {
+      engines[engineKey] = fn;
     },
     use: function(fn) {
       stack.push(fn);

@@ -1,5 +1,6 @@
 var test = require('tapes');
 var jsdom = require('jsdom');
+var ejs = require("ejs");
 
 if (!global.document) {
   global.document = jsdom.jsdom('<!doctype html><html><body><div id="universal-app-container"></div></body></html>');
@@ -91,11 +92,16 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       t.end();
     });
 
-    t.test("res.render", function(t) {
+    t.test("app.engine", function(t) {
       var view = "<h2><%= user.name %></h2>";
       var route = "/test";
       var username = "test";
       t.plan(2);
+      app.engine("ejs", function(view, locals, globals) {
+        var content = ejs.render(view, locals, {});
+        globals.document.body.innerHTML = content
+      });
+      app.set("views engine", "ejs");
       app.get(route, function(req, res) {
         t.ok(res.send, "added res.send");
         res.render(view, {user:{name: username}});
@@ -112,9 +118,14 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       var route = "/test";
       var title = "test";
       t.plan(2);
+      app.engine("ejs", function(view, locals, globals) {
+        var content = ejs.render(view, locals, {});
+        globals.document.body.innerHTML = content
+      });
+      app.set("views engine", "ejs");
       app.get(route, function(req, res) {
         t.ok(res.send, "added res.send");
-        res.render(template, {title: title, body:""});
+        res.render(template, {title: title, body:"<h2>test</h2>"});
       });
       domRoute(route, function($) {
         t.equal($('title').html(), title, "rendered template with title");
