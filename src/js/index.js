@@ -23,8 +23,8 @@ module.exports = function(options) {
             return options.document.body.innerHTML = content;
           },
           render: function(view, locals) {
-            if (store["views engine"]) {
-              var engineFunction = engines[store["views engine"]];
+            if (store["view engine"]) {
+              var engineFunction = engines[store["view engine"]];
               engineFunction(view, locals, options);
             }
           },

@@ -101,7 +101,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
         var content = ejs.render(view, locals, {});
         globals.document.body.innerHTML = content
       });
-      app.set("views engine", "ejs");
+      app.set("view engine", "ejs");
       app.get(route, function(req, res) {
         t.ok(res.send, "added res.send");
         res.render(view, {user:{name: username}});
@@ -122,7 +122,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
         var content = ejs.render(view, locals, {});
         globals.document.body.innerHTML = content
       });
-      app.set("views engine", "ejs");
+      app.set("view engine", "ejs");
       app.get(route, function(req, res) {
         t.ok(res.send, "added res.send");
         res.render(template, {title: title, body:"<h2>test</h2>"});
