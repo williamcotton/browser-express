@@ -1,6 +1,6 @@
 var async = require("async");
 
-var prouter = require("prouter");
+var prouter = require("./prouter");
 var Router = prouter.Router;
 
 module.exports = function(options) {
@@ -11,30 +11,59 @@ module.exports = function(options) {
 
   var engines = {};
 
+  var linkHandler = function(event) {
+    var sameHost;
+    if (event.target.host) {
+      sameHost = sameHost;
+    }
+    else {
+      sameHost = true;
+    }
+    if (event.target.pathname && sameHost) {
+      event.preventDefault();
+      Router.navigate(event.target.pathname + event.target.search);
+      return false;
+    }
+  }
+
+  if (options.interceptLinks) {
+    options.document.body.addEventListener("click", linkHandler, true);
+  }
+
+  var res = {
+    send: function(content) {
+      return options.document.body.innerHTML = content;
+    },
+    render: function(view, locals) {
+      if (store["view engine"]) {
+        var engineFunction = engines[store["view engine"]];
+        engineFunction(view, locals, options);
+      }
+    },
+    setHeader: function() {}
+  };
+
   var app = {
     get: function(route, handler) {
       if (arguments.length == 1 && typeof(route) == "string") {
         var key = route;
         return store[key];
       }
-      Router.use(route, function(req) {
-        var res = {
-          send: function(content) {
-            return options.document.body.innerHTML = content;
-          },
-          render: function(view, locals) {
-            if (store["view engine"]) {
-              var engineFunction = engines[store["view engine"]];
-              engineFunction(view, locals, options);
-            }
-          },
-          setHeader: function() {}
-        };
+      Router.get(route, function(req) {
         async.each(stack, function(fn, callback) {
           fn(req, res, callback);
         }, function() {
           handler(req, res);
         });
+      });
+    },
+    post: function(action, handler) {
+      Router.post(action, function(req) {
+        async.each(stack, function(fn, callback) {
+          fn(req, res, callback);
+        }, function() {
+          handler(req, res);
+        }); 
       });
     },
     set: function(key, value) {
@@ -51,7 +80,8 @@ module.exports = function(options) {
         root: "/", // base path for the handlers.
         usePushState: true, // is pushState of history API desired?
         hashChange: true, // is hashChange desired?
-        silent: false // don't try to load handlers for the current path?
+        silent: false, // don't try to load handlers for the current path?
+        usePost: true // should listen for all submit events on post?
       });
       if (callback) {
         callback();
@@ -59,11 +89,17 @@ module.exports = function(options) {
       return {
         close: function() {
           Router.stop();
+          if (options.interceptLinks) {
+            options.document.body.removeEventListener("click", linkHandler, true);
+          }
         }
       }
     },
     navigate: function(route) {
       Router.navigate(route);
+    },
+    submit: function(action, body) {
+      Router.submit(action, body);
     }
   }
 
