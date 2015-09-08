@@ -180,7 +180,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       var route = "/test5";
       var action = '/test6';
       var view = "<form action='" + action +"'><input type='text' name='username' value='alex' /></form>";
-      t.plan(4);
+      t.plan(4); // should be 3...
       app.engine("ejs", function(view, locals, globals) {
         var content = ejs.render(view, locals, {});
         globals.document.body.innerHTML = content
