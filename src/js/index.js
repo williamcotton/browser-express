@@ -1,6 +1,6 @@
 var async = require("async");
 
-var prouter = require("./prouter");
+var prouter = require("./prouter"); // waiting for pull request to be accepted
 var Router = prouter.Router;
 
 module.exports = function(options) {
