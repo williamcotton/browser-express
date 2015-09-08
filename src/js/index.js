@@ -12,13 +12,7 @@ module.exports = function(options) {
   var engines = {};
 
   var linkHandler = function(event) {
-    var sameHost;
-    if (event.target.host) {
-      sameHost = sameHost;
-    }
-    else {
-      sameHost = true;
-    }
+    var sameHost = event.target.host ? document.location.host == event.target.host : true;
     if (event.target.pathname && sameHost) {
       event.preventDefault();
       Router.navigate(event.target.pathname + event.target.search);
