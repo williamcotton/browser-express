@@ -75,7 +75,7 @@ module.exports = function(options) {
         usePushState: true, // is pushState of history API desired?
         hashChange: true, // is hashChange desired?
         silent: false, // don't try to load handlers for the current path?
-        usePost: true // should listen for all submit events on post?
+        usePost: options.interceptFormSubmit || false // should listen for all submit events on post?
       });
       if (callback) {
         callback();

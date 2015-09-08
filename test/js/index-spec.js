@@ -23,6 +23,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
         document: global.document,
         window: global.window,
         interceptLinks: true,
+        interceptFormSubmit: true,
         silent: true
       });
       server = app.listen();
