@@ -1,7 +1,9 @@
 # browser-express
 Fast, unopinionated, minimalist browser framework
 
-A browser version of [```express```](http://expressjs.com/) built with ```prouter```, a pushState routing engine.
+A browser version of [```express```](http://expressjs.com/) built with [```prouter```](https://github.com/rogerpadilla/prouter), a pushState routing engine.
+
+For an example of how to use this, please see the [Universal React](https://github.com/williamcotton/universal-react) demo application.
 
 ## Getting Started
 
