@@ -40,8 +40,6 @@ module.exports = function(options) {
       Router.navigate(pathname + search);
       return false;
     }
-    event.preventDefault();
-    return false;
   }
 
   if (options.interceptLinks) {
