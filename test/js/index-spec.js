@@ -39,6 +39,13 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       t.end();
     });
 
+    t.test("browserExpress no params", function(t) {
+      var _app = browserExpress();
+      t.ok(_app.get, "has get");
+      t.ok(_app.set, "has set");
+      t.end();
+    });
+
     t.test("app.get", function(t) {
       var paramsValue = "test0";
       var queryValue = "test1";

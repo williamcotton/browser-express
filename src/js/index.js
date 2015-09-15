@@ -5,6 +5,8 @@ var Router = prouter.Router;
 
 module.exports = function(options) {
 
+  var options = options || {};
+
   var store = {};
 
   var stack = [];
