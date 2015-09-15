@@ -15,7 +15,10 @@ For an example of how to use this, please see the [Universal React](https://gith
 
 var browserExpress = require('browser-express');
 
-var app = browserExpress();
+var app = browserExpress({
+  interceptLinks: true, // listens for all local link 'click' events and routes to app.get()
+  interceptFormSubmit: true // listens for all form 'submit' events and routes to app.post()
+});
 
 app.use(function(req, res, next) {
   req.addedMiddleware = true;
@@ -39,8 +42,18 @@ var server = app.listen(function() {
 
 app.navigate("/test/123");
 
+app.post("/form1", function(req, res) {
+  res.send("Username: " + req.body.username);
+});
+
+app.get("/showForm", function(req, res) {
+  var username = req.params.username;
+  var view = "<form action='/form1'><input type='text' name='username'></form>";
+  res.render(view, {});
+});
+
 // app.set("key", "value");
-// app.get("key") 
+// app.get("key");
 //  => "value"
 
 // server.close();
