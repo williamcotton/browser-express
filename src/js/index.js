@@ -15,11 +15,33 @@ module.exports = function(options) {
 
   var linkHandler = function(event) {
     var sameHost = event.target.host ? document.location.host == event.target.host : true;
-    if (event.target.pathname && sameHost) {
+    var pathname, search;
+    if (event.target.pathname) {
+      pathname = event.target.pathname;
+      search = event.target.search;
+    }
+    else {
+      var findInParent = function(element) {
+        var _parentElement = element.parentElement
+        if (_parentElement) {
+          if (_parentElement.pathname) {
+            pathname = _parentElement.pathname;
+            search = _parentElement.search;
+          }
+          else {
+            findInParent(_parentElement);
+          }
+        }
+      }
+      findInParent(event.target);
+    }
+    if (pathname && sameHost) {
       event.preventDefault();
-      Router.navigate(event.target.pathname + event.target.search);
+      Router.navigate(pathname + search);
       return false;
     }
+    event.preventDefault();
+    return false;
   }
 
   if (options.interceptLinks) {

@@ -79,6 +79,28 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       link.dispatchEvent(event);
     });
 
+    t.test("app.get nested click", function(t) {
+      var paramsValue = "test2";
+      var queryValue = "test3";
+      var route = "/test4/:value";
+      t.plan(4); // test is triggering twice...
+      app.get(route, function(req, res) {
+        t.equal(req.params.value, paramsValue, "param.value matches paramsValue");
+        t.equal(req.query.value, queryValue, "query.value matches queryValue");
+        t.ok(req, "has req");
+        t.ok(res, "has res");
+      });
+      var span = document.createElement("span");
+      span.innerHTML = "test";
+      var link = document.createElement("a");
+      link.href = route.replace(":value", paramsValue) + "?value=" + queryValue;
+      link.appendChild(span);
+      document.body.appendChild(link);
+      var event = document.createEvent('Event');
+      event.initEvent('click', true, true);
+      span.dispatchEvent(event);
+    });
+
     t.test("app.post", function(t) {
       var paramsValue = "test0";
       var action = "/test/:value";
