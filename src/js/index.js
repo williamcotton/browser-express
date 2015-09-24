@@ -15,10 +15,12 @@ module.exports = function(options) {
 
   var linkHandler = function(event) {
     var sameHost = event.target.host ? document.location.host == event.target.host : true;
-    var pathname, search;
+    var pathname, search, protocol, hash;
     if (event.target.pathname) {
       pathname = event.target.pathname;
       search = event.target.search;
+      protocol = event.target.protocol;
+      hash = event.target.hash;
     }
     else {
       var findInParent = function(element) {
@@ -27,6 +29,8 @@ module.exports = function(options) {
           if (_parentElement.pathname) {
             pathname = _parentElement.pathname;
             search = _parentElement.search;
+            protocol = _parentElement.protocol;
+            hash = _parentElement.hash;
           }
           else {
             findInParent(_parentElement);
@@ -35,9 +39,10 @@ module.exports = function(options) {
       }
       findInParent(event.target);
     }
-    if (pathname && sameHost) {
+    if (pathname && sameHost && (protocol === "http:" || protocol === "https:")) {
       event.preventDefault();
-      Router.navigate(pathname + search);
+      var navigated = Router.navigate(pathname + search + hash);
+      // it would be nice if it only preventedDefault and returned false if it actually hit a route!
       return false;
     }
   }
