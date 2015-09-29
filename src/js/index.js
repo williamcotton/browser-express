@@ -39,7 +39,7 @@ module.exports = function(options) {
       }
       findInParent(event.target);
     }
-    if (pathname && sameHost && (protocol === "http:" || protocol === "https:")) {
+    if (pathname && sameHost && (protocol === "http:" || protocol === "https:" || (protocol === "file:" && event.test))) {
       event.preventDefault();
       var navigated = Router.navigate(pathname + search + hash);
       // it would be nice if it only preventedDefault and returned false if it actually hit a route!
@@ -66,24 +66,50 @@ module.exports = function(options) {
 
   var app = {
     get: function(route, handler) {
+      var middleware;
       if (arguments.length == 1 && typeof(route) == "string") {
         var key = route;
         return store[key];
+      }
+      else if (arguments.length == 3) {
+        route = arguments[0];
+        middleware = arguments[1];
+        handler = arguments[2];
       }
       Router.get(route, function(req) {
         async.each(stack, function(fn, callback) {
           fn(req, res, callback);
         }, function() {
-          handler(req, res);
+          if (middleware) {
+            middleware(req, res, function() {
+              handler(req, res);
+            });
+          }
+          else {
+            handler(req, res);
+          }
         });
       });
     },
     post: function(action, handler) {
+      var middleware;
+      if (arguments.length == 3) {
+        action = arguments[0];
+        middleware = arguments[1];
+        handler = arguments[2];
+      }
       Router.post(action, function(req) {
         async.each(stack, function(fn, callback) {
           fn(req, res, callback);
         }, function() {
-          handler(req, res);
+          if (middleware) {
+            middleware(req, res, function() {
+              handler(req, res);
+            });
+          }
+          else {
+            handler(req, res);
+          }
         }); 
       });
     },

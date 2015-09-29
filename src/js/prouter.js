@@ -522,6 +522,7 @@ var prouter;
                     if (body) {
                         reqProc.request.body = body;
                     }
+                    reqProc.request.path = "/" + reqProc.request.path;
                     var resp = reqProc.activate.call(null, reqProc.request, next);
                     if (resp === true) {
                         if (console && console.log) {

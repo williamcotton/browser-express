@@ -50,10 +50,35 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       var paramsValue = "test0";
       var queryValue = "test1";
       var route = "/test/:value";
-      t.plan(4);
+      t.plan(5);
       app.get(route, function(req, res) {
         t.equal(req.params.value, paramsValue, "param.value matches paramsValue");
         t.equal(req.query.value, queryValue, "query.value matches queryValue");
+        t.equal(req.path, "/test/test0", "path matches");
+        t.ok(req, "has req");
+        t.ok(res, "has res");
+      });
+      domRoute(route.replace(":value", paramsValue) + "?value=" + queryValue, function($) {});
+    });
+
+    t.test("app.get middleware", function(t) {
+      var paramsValue = "test0";
+      var queryValue = "test1";
+      var route = "/test/:value";
+      var testValue0 = 1234;
+      var testValue1 = 2345;
+      t.plan(7);
+      var middleware = function(req, res, next) {
+        req.test = testValue0;
+        res.test = testValue1;
+        next();
+      };
+      app.get(route, middleware, function(req, res) {
+        t.equal(req.params.value, paramsValue, "param.value matches paramsValue");
+        t.equal(req.query.value, queryValue, "query.value matches queryValue");
+        t.equal(req.path, "/test/test0", "path matches");
+        t.equal(req.test, testValue0, "middleware set req");
+        t.equal(res.test, testValue1, "middleware set res");
         t.ok(req, "has req");
         t.ok(res, "has res");
       });
@@ -75,6 +100,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       link.href = route.replace(":value", paramsValue) + "?value=" + queryValue;
       document.body.appendChild(link);
       var event = document.createEvent('Event');
+      event.test = true;
       event.initEvent('click', true, true);
       link.dispatchEvent(event);
     });
@@ -97,6 +123,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       link.appendChild(span);
       document.body.appendChild(link);
       var event = document.createEvent('Event');
+      event.test = true;
       event.initEvent('click', true, true);
       span.dispatchEvent(event);
     });
@@ -107,7 +134,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       app.post(action, function(req, res) {
         t.equal(req.params.value, paramsValue, "param.value matches paramsValue");
         t.equal(req.body[input.name], input.value, "body matches input name and value");
-        t.equal("/" + req.path, form.action, "path matches form.action");
+        t.equal(req.path, form.action, "path matches form.action");
         t.end();
       });
       var form = document.createElement("form");
@@ -119,6 +146,39 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
       form.appendChild(input);
       document.body.appendChild(form);
       var event = document.createEvent('Event');
+      event.test = true;
+      event.initEvent('submit', true, true);
+      form.dispatchEvent(event);
+    });
+
+    t.test("app.post middleware", function(t) {
+      var paramsValue = "test0";
+      var action = "/test/:value";
+      var testValue0 = 1234;
+      var testValue1 = 2345;
+      var middleware = function(req, res, next) {
+        req.test = testValue0;
+        res.test = testValue1;
+        next();
+      };
+      app.post(action, middleware, function(req, res) {
+        t.equal(req.params.value, paramsValue, "param.value matches paramsValue");
+        t.equal(req.body[input.name], input.value, "body matches input name and value");
+        t.equal(req.path, form.action, "path matches form.action");
+        t.equal(req.test, testValue0, "middleware set req");
+        t.equal(res.test, testValue1, "middleware set res");
+        t.end();
+      });
+      var form = document.createElement("form");
+      form.action = action.replace(":value", paramsValue);
+      var input = document.createElement("input");
+      input.type = "text";
+      input.value = "1234";
+      input.name = "test3";
+      form.appendChild(input);
+      document.body.appendChild(form);
+      var event = document.createEvent('Event');
+      event.test = true;
       event.initEvent('submit', true, true);
       form.dispatchEvent(event);
     });
@@ -200,6 +260,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
         var link = global.window.$("a");
         t.equal(link.attr("href"), route2, "href matches route");
         var event = document.createEvent('Event');
+        event.test = true;
         event.initEvent('click', true, true);
         link[0].dispatchEvent(event);
       });
@@ -229,6 +290,7 @@ jsdom.jQueryify(global.window, "http://code.jquery.com/jquery-2.1.1.js", functio
         var form = global.window.$("form");
         t.equal(form.attr("action"), action, "actions match");
         var event = document.createEvent('Event');
+        event.test = true;
         event.initEvent('submit', true, true);
         form[0].dispatchEvent(event);
       });
