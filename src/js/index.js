@@ -119,9 +119,10 @@ module.exports = function (options) {
     listen: function (callback) {
       var router = Router.listen({
         root: '/', // base path for the handlers.
-        usePushState: true, // is pushState of history API desired?
-        hashChange: true, // is hashChange desired?
+        usePushState: !options.abstractNavigation, // is pushState of history API desired?
+        hashChange: !options.abstractNavigation, // is hashChange desired?
         silent: false, // don't try to load handlers for the current path?
+        abstractNavigation: options.abstractNavigation,
         usePost: options.interceptFormSubmit || false // should listen for all submit events on post?
       })
       if (callback) {
