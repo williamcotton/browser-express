@@ -146,6 +146,28 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       form.dispatchEvent(event)
     })
 
+    t.test('app.post', function (t) {
+      var paramsValue = 'test0'
+      var action = '/test/:value'
+      app.post(action, function (req, res) {
+        t.equal(req.params.value, paramsValue, 'param.value matches paramsValue')
+        t.equal(req.body[input.name], input.value, 'body matches input name and value')
+        t.equal(req.path, form.action, 'path matches form.action')
+        t.end()
+      })
+      var form = document.createElement('form')
+      form.action = action.replace(':value', paramsValue)
+      var input = document.createElement('input')
+      input.type = 'number'
+      input.value = 123
+      input.name = 'test4'
+      form.appendChild(input)
+      document.body.appendChild(form)
+      var event = document.createEvent('Event')
+      event.initEvent('submit', true, true)
+      form.dispatchEvent(event)
+    })
+
     t.test('app.post middleware', function (t) {
       var paramsValue = 'test0'
       var action = '/test/:value'

@@ -24,6 +24,19 @@ var prouter
           switch (form.elements[i].type) {
             case 'text':
             case 'hidden':
+            case 'date':
+            case 'color':
+            case 'range':
+            case 'month':
+            case 'week':
+            case 'time':
+            case 'datetime':
+            case 'datetime-local':
+            case 'email':
+            case 'search':
+            case 'tel':
+            case 'url':
+            case 'number':
             case 'password':
             case 'button':
             case 'reset':
