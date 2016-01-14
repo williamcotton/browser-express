@@ -383,7 +383,7 @@ var prouter
       event.preventDefault()
       var body = serialize(event.target, true)
       var action = event.target.action.replace(window.location.origin, '')
-      return Router.load(action, Router._postHandlers, body)
+      return Router.load(action, Router._postHandlers, body, event)
     }
     /**
      * Disable the route-change-handling and resets the Router's state, perhaps temporarily.
@@ -499,9 +499,9 @@ var prouter
      * Load the current path only if it has not been already heeded.
      * @return {Router} The router.
      */
-    Router.heedCurrent = function () {
+    Router.heedCurrent = function (event) {
       var currentPath = Router.getCurrent()
-      return currentPath === Router._loadedPath ? Router : Router.load(currentPath, Router._getHandlers)
+      return currentPath === Router._loadedPath ? Router : Router.load(currentPath, Router._getHandlers, false, event)
     }
     /**
      * Attempt to loads the handlers matching the given URL fragment.
@@ -510,7 +510,7 @@ var prouter
      * @param  {Object} body The body of a form.
      * @returns {Router} The router.
      */
-    Router.load = function (path, handlersStore, body) {
+    Router.load = function (path, handlersStore, body, event) {
       var reqProcessors = Router._obtainRequestProcessors(path, handlersStore)
       if (reqProcessors.length) {
         var count = 0
@@ -524,6 +524,9 @@ var prouter
           reqProc.request.oldPath = Router._loadedPath
           if (body) {
             reqProc.request.body = body
+          }
+          if (event) {
+            reqProc.request.event = event
           }
           reqProc.request.path = '/' + reqProc.request.path
           var resp = reqProc.activate.call(null, reqProc.request, next)
