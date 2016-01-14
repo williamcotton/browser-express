@@ -50,15 +50,23 @@ module.exports = function (options) {
 
   var res = {
     send: function (content) {
-      return options.document.body.innerHTML = content
+      res.writeHead(200)
+      options.document.body.innerHTML = content
+      return content
     },
     render: function (view, locals) {
+      res.writeHead(200)
       if (store['view engine']) {
         var engineFunction = engines[store['view engine']]
         engineFunction(view, locals, options)
       }
     },
-    setHeader: function () {}
+    setHeader: function () {},
+    loadPage: function (path) {
+      res.writeHead(200)
+      window.location = path
+    },
+    writeHead: function (statusCode) {}
   }
 
   var app = {
@@ -139,9 +147,11 @@ module.exports = function (options) {
       }
     },
     navigate: function (route) {
+      res.writeHead(200)
       Router.navigate(route)
     },
     submit: function (action, body) {
+      res.writeHead(200)
       Router.submit(action, body)
     }
   }
