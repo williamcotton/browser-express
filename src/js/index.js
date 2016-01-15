@@ -50,23 +50,27 @@ module.exports = function (options) {
 
   var res = {
     send: function (content) {
-      res.writeHead(200)
       options.document.body.innerHTML = content
+      res.writeHead(200)
       return content
     },
     render: function (view, locals) {
-      res.writeHead(200)
       if (store['view engine']) {
         var engineFunction = engines[store['view engine']]
         engineFunction(view, locals, options)
       }
+      res.writeHead(200)
     },
     setHeader: function () {},
     loadPage: function (path) {
       res.writeHead(200)
       window.location = path
     },
-    writeHead: function (statusCode) {}
+    writeHead: function (statusCode) {
+      if (res.onComplete) {
+        res.onComplete()
+      }
+    }
   }
 
   var app = {
@@ -150,7 +154,12 @@ module.exports = function (options) {
       res.writeHead(200)
       Router.navigate(route)
     },
-    submit: function (action, body) {
+    submit: function (action, body, callback) {
+      if (callback) {
+        res.onComplete = function () {
+          callback()
+        }
+      }
       res.writeHead(200)
       Router.submit(action, body)
     }
