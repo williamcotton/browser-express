@@ -52,6 +52,10 @@ module.exports = function (options) {
     send: function (content) {
       options.document.body.innerHTML = content
       res.writeHead(200)
+      if (res.onComplete) {
+        res.onComplete()
+      }
+
       return content
     },
     render: function (view, locals) {
@@ -60,17 +64,16 @@ module.exports = function (options) {
         engineFunction(view, locals, options)
       }
       res.writeHead(200)
+      if (res.onComplete) {
+        res.onComplete()
+      }
     },
     setHeader: function () {},
     loadPage: function (path) {
       res.writeHead(200)
       window.location = path
     },
-    writeHead: function (statusCode) {
-      if (res.onComplete) {
-        res.onComplete()
-      }
-    }
+    writeHead: function (statusCode) {}
   }
 
   var app = {
@@ -159,8 +162,9 @@ module.exports = function (options) {
         res.onComplete = function () {
           callback()
         }
+      } else {
+        res.writeHead(200)
       }
-      res.writeHead(200)
       Router.submit(action, body)
     }
   }
