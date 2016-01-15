@@ -1,6 +1,6 @@
 {
   "name": "browser-express",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Fast, unopinionated, minimalist browser framework",
   "main": "src/js/index.js",
   "scripts": {
@@ -30,8 +30,6 @@
     "ejs": "^2.3.3"
   },
   "dependencies": {
-    "async": "^1.4.2",
-    "ejs": "^2.3.4",
-    "prouter": "^2.1.6"
+    "async": "^1.4.2"
   }
 }

@@ -6,6 +6,12 @@ var Router = prouter.Router
 module.exports = function (options) {
   options = options || {}
 
+  var incomingMessage = options.incomingMessage || {}
+
+  if (options.window && options.window.incomingMessage) {
+    incomingMessage = options.window.incomingMessage
+  }
+
   var store = {}
 
   var stack = []
@@ -71,7 +77,7 @@ module.exports = function (options) {
     setHeader: function () {},
     loadPage: function (path) {
       res.writeHead(200)
-      window.location = path
+      options.window.location = path
     },
     writeHead: function (statusCode) {}
   }
@@ -88,6 +94,7 @@ module.exports = function (options) {
         handler = arguments[2]
       }
       Router.get(route, function (req) {
+        for (var attrname in incomingMessage) { req[attrname] = incomingMessage[attrname] }
         async.each(stack, function (fn, callback) {
           fn(req, res, callback)
         }, function () {
@@ -109,6 +116,7 @@ module.exports = function (options) {
         handler = arguments[2]
       }
       Router.post(action, function (req) {
+        for (var attrname in incomingMessage) { req[attrname] = incomingMessage[attrname] }
         async.each(stack, function (fn, callback) {
           fn(req, res, callback)
         }, function () {
