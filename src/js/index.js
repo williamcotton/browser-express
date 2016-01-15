@@ -16,6 +16,8 @@ module.exports = function (options) {
 
   var stack = []
 
+  var completeCallbacks = []
+
   var engines = {}
 
   var linkHandler = function (event) {
@@ -58,20 +60,15 @@ module.exports = function (options) {
     send: function (content) {
       options.document.body.innerHTML = content
       res.writeHead(200)
-      if (res.onComplete) {
-        res.onComplete()
-      }
-
+      res.onComplete(content)
       return content
     },
     render: function (view, locals) {
+      res.writeHead(200)
+      res.onComplete(view, locals)
       if (store['view engine']) {
         var engineFunction = engines[store['view engine']]
         engineFunction(view, locals, options)
-      }
-      res.writeHead(200)
-      if (res.onComplete) {
-        res.onComplete()
       }
     },
     setHeader: function () {},
@@ -79,7 +76,14 @@ module.exports = function (options) {
       res.writeHead(200)
       options.window.location = path
     },
-    writeHead: function (statusCode) {}
+    writeHead: function (statusCode) {},
+    onComplete: function () {
+      var onCompleteArgs = arguments
+      var cb
+      while ((cb = completeCallbacks.pop())) {
+        cb.apply(res, onCompleteArgs)
+      }
+    }
   }
 
   var app = {
@@ -94,7 +98,11 @@ module.exports = function (options) {
         handler = arguments[2]
       }
       Router.get(route, function (req) {
-        for (var attrname in incomingMessage) { req[attrname] = incomingMessage[attrname] }
+        for (var attrname in incomingMessage) {
+          if (!req[attrname]) {
+            req[attrname] = incomingMessage[attrname]
+          }
+        }
         async.each(stack, function (fn, callback) {
           fn(req, res, callback)
         }, function () {
@@ -116,7 +124,11 @@ module.exports = function (options) {
         handler = arguments[2]
       }
       Router.post(action, function (req) {
-        for (var attrname in incomingMessage) { req[attrname] = incomingMessage[attrname] }
+        for (var attrname in incomingMessage) {
+          if (!req[attrname]) {
+            req[attrname] = incomingMessage[attrname]
+          }
+        }
         async.each(stack, function (fn, callback) {
           fn(req, res, callback)
         }, function () {
@@ -161,15 +173,17 @@ module.exports = function (options) {
         router: router
       }
     },
-    navigate: function (route) {
-      res.writeHead(200)
+    navigate: function (route, callback) {
+      if (callback) {
+        completeCallbacks.push(callback)
+      } else {
+        res.writeHead(200)
+      }
       Router.navigate(route)
     },
     submit: function (action, body, callback) {
       if (callback) {
-        res.onComplete = function () {
-          callback()
-        }
+        completeCallbacks.push(callback)
       } else {
         res.writeHead(200)
       }

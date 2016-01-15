@@ -16,6 +16,8 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
   test('browser-express', function (t) {
     var domRoute, app, server
 
+    global.window.incomingMessage = {test: 123}
+
     t.beforeEach(function (t) {
       app = browserExpress({
         document: global.document,
@@ -57,6 +59,15 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
         t.ok(res, 'has res')
       })
       domRoute(route.replace(':value', paramsValue) + '?value=' + queryValue, function ($) {})
+    })
+
+    t.test('incomingMessage', function (t) {
+      var route = '/test'
+      t.plan(1)
+      app.get(route, function (req, res) {
+        t.equal(req.test, 123, 'req.test from incomingMessage')
+      })
+      domRoute(route, function ($) {})
     })
 
     t.test('app.get middleware', function (t) {
@@ -106,7 +117,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var paramsValue = 'test2'
       var queryValue = 'test3'
       var route = '/test4/:value'
-      t.plan(4); // test is triggering twice...
+      t.plan(4) // test is triggering twice...
       app.get(route, function (req, res) {
         t.equal(req.params.value, paramsValue, 'param.value matches paramsValue')
         t.equal(req.query.value, queryValue, 'query.value matches queryValue')
@@ -128,6 +139,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var paramsValue = 'test0'
       var action = '/test/:value'
       app.post(action, function (req, res) {
+        t.equal(req.event.target, form, 'req.event matches form')
         t.equal(req.params.value, paramsValue, 'param.value matches paramsValue')
         t.equal(req.body[input.name], input.value, 'body matches input name and value')
         t.equal(req.path, form.action, 'path matches form.action')
@@ -150,6 +162,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var paramsValue = 'test0'
       var action = '/test/:value'
       app.post(action, function (req, res) {
+        t.equal(req.event.target, form, 'req.event matches form')
         t.equal(req.params.value, paramsValue, 'param.value matches paramsValue')
         t.equal(req.body[input.name], input.value, 'body matches input name and value')
         t.equal(req.path, form.action, 'path matches form.action')
@@ -179,6 +192,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
         next()
       }
       app.post(action, middleware, function (req, res) {
+        t.equal(req.event.target, form, 'req.event matches form')
         t.equal(req.params.value, paramsValue, 'param.value matches paramsValue')
         t.equal(req.body[input.name], input.value, 'body matches input name and value')
         t.equal(req.path, form.action, 'path matches form.action')
@@ -279,7 +293,6 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
         event.initEvent('click', true, true)
         link[0].dispatchEvent(event)
       })
-
     })
 
     t.test('app.engine form submit', function (t) {
@@ -328,6 +341,50 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       })
       domRoute(route, function ($) {
         t.equal($('title').html(), title, 'rendered template with title')
+      })
+    })
+
+    t.test('writeHead', function (t) {
+      var route1 = '/test1'
+      var route2 = '/test2'
+      t.plan(1)
+      app.use(function (req, res, next) {
+        res.writeHead = function (statusCode) {
+          t.equal(statusCode, 200, 'did call writeHead function')
+        }
+        next()
+      })
+      app.get(route2, function (req, res) {})
+      app.get(route1, function (req, res) {
+        app.navigate(route2)
+      })
+      domRoute(route1, function ($) {})
+    })
+
+    t.test('app.navigate callback', function (t) {
+      var route = '/test12'
+      t.plan(3)
+      app.get(route, function (req, res) {
+        t.ok(true, 'called route')
+        res.send('ok')
+      })
+      app.navigate(route, function (content) {
+        t.equal(content, 'ok', 'content was ok')
+        t.ok(true, 'called callback')
+      })
+    })
+
+    t.test('app.submit callback', function (t) {
+      var action = '/test123'
+      t.plan(3)
+      var form = {test: 123}
+      app.post(action, function (req, res) {
+        t.equal(req.body, form, 'req.body equals form')
+        res.send('ok')
+      })
+      app.submit(action, form, function (content) {
+        t.equal(content, 'ok', 'content was ok')
+        t.ok(true, 'called callback')
       })
     })
 
