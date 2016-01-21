@@ -158,6 +158,7 @@ module.exports = function (options) {
         hashChange: !options.abstractNavigation, // is hashChange desired?
         silent: false, // don't try to load handlers for the current path?
         abstractNavigation: options.abstractNavigation,
+        wantsPostReplay: options.wantsPostReplay,
         usePost: options.interceptFormSubmit || false // should listen for all submit events on post?
       })
       if (callback) {

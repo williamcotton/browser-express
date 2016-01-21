@@ -18,14 +18,16 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
 
     global.window.incomingMessage = {test: 123}
 
+    var appOptions = {
+      document: global.document,
+      window: global.window,
+      interceptLinks: true,
+      interceptFormSubmit: true,
+      silent: true
+    }
+
     t.beforeEach(function (t) {
-      app = browserExpress({
-        document: global.document,
-        window: global.window,
-        interceptLinks: true,
-        interceptFormSubmit: true,
-        silent: true
-      })
+      app = browserExpress(appOptions)
       server = app.listen()
       domRoute = function (route, callback) {
         app.navigate(route)
@@ -231,14 +233,35 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var body = 'this is a test'
       t.plan(1)
       app.use(function (req, res, next) {
-        res.addedMiddleware = true
+        req.addedMiddleware = true
         next()
       })
       app.get(route, function (req, res) {
-        t.ok(res.addedMiddleware, 'added middleware')
+        t.ok(req.addedMiddleware, 'added middleware')
         res.send(body)
       })
       domRoute(route, function ($) {})
+    })
+
+    t.test('app.use get and post', function (t) {
+      var route1 = '/test1'
+      var route2 = '/test2'
+      var body = 'this is a test'
+      t.plan(2)
+      app.use(function (req, res, next) {
+        req.addedAnotherMiddleware = true
+        next()
+      })
+      app.get(route1, function (req, res) {
+        t.ok(req.addedAnotherMiddleware, 'added middleware')
+        res.send(body)
+      })
+      app.post(route2, function (req, res) {
+        t.ok(req.addedAnotherMiddleware, 'added middleware')
+        res.send(body)
+      })
+      domRoute(route1, function ($) {})
+      app.submit(route2, {})
     })
 
     t.test('app.set', function (t) {
@@ -299,14 +322,13 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var route = '/test5'
       var action = '/test6'
       var view = "<form action='" + action + "'><input type='text' name='username' value='alex' /></form>"
-      t.plan(4) // should be 3...
+      t.plan(3)
       app.engine('ejs', function (view, locals, globals) {
         var content = ejs.render(view, locals, {})
         globals.document.body.innerHTML = content
       })
       app.set('view engine', 'ejs')
       app.get(route, function (req, res) {
-        // this is being called twice...
         t.ok(res.send, 'added res.send')
         res.render(view, {})
       })
@@ -385,6 +407,152 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       app.submit(action, form, function (content) {
         t.equal(content, 'ok', 'content was ok')
         t.ok(true, 'called callback')
+      })
+    })
+
+    t.test('fires GET', function (t) {
+      server.close()
+      var paramsValue = '456'
+      global.window.location.href = '/test2/' + paramsValue
+      app = browserExpress({
+        document: global.document,
+        window: global.window,
+        interceptLinks: true,
+        interceptFormSubmit: true,
+        usePushState: true,
+        silent: false
+      })
+      var action = '/test2/:value'
+      app.get(action, function (req, res) {
+        t.equal(req.params.value, paramsValue, 'req.param.value matches paramsValue')
+        t.end()
+      })
+      server = app.listen()
+    })
+
+    t.test('fires POST on incomingMessage', function (t) {
+      server.close()
+      var paramsValue = '456'
+      var body = body
+      global.window.incomingMessage = {method: 'POST', body: body}
+      global.window.location.href = '/test/' + paramsValue
+      app = browserExpress({
+        document: global.document,
+        window: global.window,
+        interceptLinks: true,
+        interceptFormSubmit: true,
+        usePushState: true,
+        silent: false
+      })
+      var action = '/test/:value'
+      app.post(action, function (req, res) {
+        t.equal(req.params.value, paramsValue, 'req.param.value matches paramsValue')
+        t.equal(req.body, body, 'req.body matches body')
+        t.end()
+      })
+      server = app.listen()
+    })
+
+    t.test('app.submit with no replay', function (t) {
+      server.close()
+      app = browserExpress({
+        document: global.document,
+        window: global.window,
+        interceptLinks: true,
+        interceptFormSubmit: true,
+        usePushState: true,
+        silent: true
+      })
+      server = app.listen()
+      var action = '/test123'
+      t.plan(3)
+      var form = {test: 123}
+      var isReplay
+      app.get('/tt', function (req, res) {
+        t.ok(true, 'did GET')
+      })
+      app.post(action, function (req, res) {
+        if (isReplay) {
+          t.equal(req.body, undefined, 'req.body is undefined')
+        } else {
+          t.equal(req.body, form, 'req.body equals form')
+          isReplay = true
+        }
+        res.send('ok')
+      })
+      app.submit(action, form, function () {
+        app.navigate('/tt', function() {
+          global.window.history.back()
+        })
+      })
+    })
+
+    t.test('app.submit with replay', function (t) {
+      server.close()
+      app = browserExpress({
+        document: global.document,
+        window: global.window,
+        interceptLinks: true,
+        interceptFormSubmit: true,
+        usePushState: true,
+        silent: true
+      })
+      server = app.listen()
+      var action = '/test234'
+      t.plan(3)
+      var form = {test: 123, _replay: true}
+      var isReplay
+      app.get('/tt', function (req, res) {
+        t.ok(true, 'did GET')
+      })
+      app.post(action, function (req, res) {
+        if (isReplay) {
+          t.equal(req.body, form, 'req.body equals form')
+        } else {
+          t.equal(req.body, form, 'req.body equals form')
+          isReplay = true
+        }
+        res.send('ok')
+      })
+      app.submit(action, form, function () {
+        app.navigate('/tt', function() {
+          global.window.history.back()
+        })
+      })
+    })
+
+    t.test('app.submit with global replay', function (t) {
+      server.close()
+      app = browserExpress({
+        document: global.document,
+        window: global.window,
+        interceptLinks: true,
+        interceptFormSubmit: true,
+        usePushState: true,
+        silent: true,
+        wantsPostReplay: true
+      })
+      server = app.listen()
+      var action = '/test345'
+      t.plan(3)
+      var form = {test: 123}
+      var isReplay
+      app.get('/tt', function (req, res) {
+        t.ok(true, 'did GET')
+      })
+      app.post(action, function (req, res) {
+        if (isReplay) {
+          t.equal(req.body, form, 'req.body equals form')
+        } else {
+          t.equal(req.body, form, 'req.body equals form')
+          isReplay = true
+        }
+        res.send('ok')
+      })
+      app.submit(action, form, function () {
+        app.navigate('/tt', function () {
+          global.window.history.back()
+        })
       })
     })
 

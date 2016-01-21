@@ -357,8 +357,9 @@ var prouter
           options[prop] = DEF_OPTIONS[prop]
         }
       }
+      Router._wantsPostReplay = options.wantsPostReplay
       Router._wantsHashChange = options.hashChange
-      Router._usePushState = options.usePushState && !!(_global.history && _global.history.pushState)
+      Router._usePushState = options.usePushState && !!(window.history && window.history.pushState)
       Router._abstractNavigation = options.abstractNavigation
       Router._root = RouteHelper.ensureSlashes(options.root)
       if (Router._usePushState) {
@@ -383,7 +384,7 @@ var prouter
       event.preventDefault()
       var body = serialize(event.target, true)
       var action = event.target.action.replace(window.location.origin, '')
-      return Router.load(action, Router._postHandlers, body, event)
+      return Router.submit(action, body, event)
     }
     /**
      * Disable the route-change-handling and resets the Router's state, perhaps temporarily.
@@ -408,6 +409,7 @@ var prouter
      * @return {string} The current path.
      */
     Router.getCurrent = function () {
+      var method = window.incomingMessage && window.incomingMessage.method ? window.incomingMessage.method : 'GET'
       var path
       if (Router._usePushState || !Router._wantsHashChange) {
         path = decodeURI(window.location.pathname + window.location.search)
@@ -418,7 +420,10 @@ var prouter
         path = match ? match[1] : ''
       }
       path = RouteHelper.clearSlashes(path)
-      return path
+      return {
+        path: path,
+        method: method
+      }
     }
     /**
      * Add the given middleware as a handler for the given path (defaulting to any path).
@@ -469,8 +474,23 @@ var prouter
      * @param {string} body The body of the form.
      * @returns {Router} The router.
      */
-    Router.submit = function (action, body) {
-      return Router.load(action, Router._postHandlers, body)
+    Router.submit = function (action, body, event) {
+      if (Router._root === undefined || Router._root === null) {
+        throw new Error("It is required to call the 'listen' function before navigating.")
+      }
+      action = RouteHelper.clearSlashes(action)
+      if (Router._usePushState) {
+        window.history.pushState({body: body, method: 'post'}, action, Router._root + action)
+      } else if (Router._wantsHashChange) {
+        window.location.hash = '#' + action
+      } else if (!Router._abstractNavigation) {
+        // If you've told us that you explicitly don't want fallback hashchange-
+        // based history, then `navigate` becomes a page refresh.
+        console.log('refresh!')
+        window.location.assign(Router._root + action)
+        return Router
+      }
+      return Router.load(action, Router._postHandlers, body, event)
     }
     /**
      * Change the current path and load it.
@@ -500,8 +520,17 @@ var prouter
      * @return {Router} The router.
      */
     Router.heedCurrent = function (event) {
-      var currentPath = Router.getCurrent()
-      return currentPath === Router._loadedPath ? Router : Router.load(currentPath, Router._getHandlers, false, event)
+      var currentRequest = Router.getCurrent()
+      var currentPath = currentRequest.path
+      var currentMethod = currentRequest.method
+      var body
+      if (event && event.state && event.state.body && event.state.method.toUpperCase() === 'POST' && (Router._wantsPostReplay || event.state.body._replay)) {
+        body = event.state.body
+        currentMethod = 'POST'
+      }
+      return (currentPath === Router._loadedPath && currentMethod === Router._loadedMethod) ? Router
+       : currentMethod.toUpperCase() === 'POST' ? Router.load(currentPath, Router._postHandlers, body, event)
+       : Router.load(currentPath, Router._getHandlers, false, event)
     }
     /**
      * Attempt to loads the handlers matching the given URL fragment.
@@ -512,6 +541,8 @@ var prouter
      */
     Router.load = function (path, handlersStore, body, event) {
       var reqProcessors = Router._obtainRequestProcessors(path, handlersStore)
+      Router._loadedMethod = body ? 'POST' : 'GET'
+      Router._loadedPath = path
       if (reqProcessors.length) {
         var count = 0
         /** Anonymous function used for processing routing cycle. */
@@ -539,7 +570,6 @@ var prouter
         }
         next()
       }
-      Router._loadedPath = path
       return Router
     }
     /**
