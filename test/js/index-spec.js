@@ -453,7 +453,41 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       server = app.listen()
     })
 
-    t.test('app.submit with no replay', function (t) {
+    t.test('app.submit with no push', function (t) {
+      server.close()
+      app = browserExpress({
+        document: global.document,
+        window: global.window,
+        interceptLinks: true,
+        interceptFormSubmit: true,
+        usePushState: true,
+        silent: true
+      })
+      server = app.listen()
+      var action = '/test123'
+      t.plan(2)
+      var form = {test: 123}
+      var didPush
+      app.get('/tt', function (req, res) {
+        t.ok(true, 'did GET')
+      })
+      app.post(action, function (req, res) {
+        if (didPush) {
+          t.ok(false, 'should not have pushed')
+        } else {
+          t.equal(req.body, form, 'req.body equals form')
+          didPush = true
+        }
+        res.send('ok')
+      })
+      app.submit(action, form, function () {
+        app.navigate('/tt', function() {
+          global.window.history.back()
+        })
+      })
+    })
+
+    t.test('app.submit with push but no replay', function (t) {
       server.close()
       app = browserExpress({
         document: global.document,
@@ -466,7 +500,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       server = app.listen()
       var action = '/test123'
       t.plan(3)
-      var form = {test: 123}
+      var form = {test: 123, _push: true}
       var isReplay
       app.get('/tt', function (req, res) {
         t.ok(true, 'did GET')
@@ -487,7 +521,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       })
     })
 
-    t.test('app.submit with replay', function (t) {
+    t.test('app.submit with push and replay', function (t) {
       server.close()
       app = browserExpress({
         document: global.document,
@@ -500,7 +534,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       server = app.listen()
       var action = '/test234'
       t.plan(3)
-      var form = {test: 123, _replay: true}
+      var form = {test: 123, _replay: true, _push: true}
       var isReplay
       app.get('/tt', function (req, res) {
         t.ok(true, 'did GET')
