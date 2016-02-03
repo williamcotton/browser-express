@@ -479,8 +479,10 @@ var prouter
         throw new Error("It is required to call the 'listen' function before navigating.")
       }
       action = RouteHelper.clearSlashes(action)
-      if (Router._usePushState && (body._push || Router._wantsPostReplay)) {
-        window.history.pushState({body: body, method: 'post'}, action, Router._root + action)
+      if (Router._usePushState) {
+        if (body._push || Router._wantsPostReplay) {
+          window.history.pushState({body: body, method: 'post'}, action, Router._root + action)
+        }
       } else if (Router._wantsHashChange) {
         window.location.hash = '#' + action
       } else if (!Router._abstractNavigation) {
