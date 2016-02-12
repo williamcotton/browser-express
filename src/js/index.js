@@ -47,6 +47,8 @@ module.exports = function (options) {
     if (pathname && sameHost && (protocol === 'http:' || protocol === 'https:' || protocol === 'file:')) {
       event.preventDefault()
       var navigated = Router.navigate(pathname + search + hash)
+      // Scroll to top to match normal anchor click behavior
+      options.window.scrollTo(0, 0)
       // it would be nice if it only preventedDefault and returned false if it actually hit a route!
       return false
     }
