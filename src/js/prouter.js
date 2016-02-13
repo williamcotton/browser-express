@@ -381,8 +381,11 @@ var prouter
      * @returns {Router} The router.
      */
     Router.postListener = function (event) {
-      event.preventDefault()
       var body = serialize(event.target, true)
+      if (body._reload) {
+        return false
+      }
+      event.preventDefault()
       var action = event.target.action.replace(window.location.origin, '')
       return Router.submit(action, body, event)
     }
