@@ -1,6 +1,6 @@
 {
   "name": "browser-express",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Fast, unopinionated, minimalist browser framework",
   "main": "src/js/index.js",
   "scripts": {
