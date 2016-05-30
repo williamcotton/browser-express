@@ -1,4 +1,5 @@
 var async = require('async')
+var smoothScroll = require('./smooth-scroll')
 
 var prouter = require('./prouter') // waiting for pull request to be accepted
 var Router = prouter.Router
@@ -44,8 +45,13 @@ module.exports = function (options) {
       }
       findInParent(event.target)
     }
+
     if (pathname && sameHost && (protocol === 'http:' || protocol === 'https:' || protocol === 'file:')) {
       event.preventDefault()
+      if (hash) {
+        smoothScroll.animateScroll(hash)
+        return false
+      }
       var navigated = Router.navigate(pathname + search + hash)
       // Scroll to top to match normal anchor click behavior
       options.window.scrollTo(0, 0)
