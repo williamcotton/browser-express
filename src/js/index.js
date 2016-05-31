@@ -56,7 +56,7 @@ module.exports = function (options) {
       var navigated = Router.navigate(pathname + search + hash)
       // Scroll to top to match normal anchor click behavior
       if (hash) {
-        setTimeout(() => smoothScroll.animateScroll(hash), 33)
+        setTimeout(function () { smoothScroll.animateScroll(hash) }, 33)
       } else {
         options.window.scrollTo(0, 0)
       }
