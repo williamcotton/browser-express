@@ -23,6 +23,7 @@ module.exports = function (options) {
 
   var linkHandler = function (event) {
     var sameHost = event.target.host ? document.location.host === event.target.host : true
+    var samePath = event.target.pathname ? document.location.pathname === event.target.pathname : true
     var pathname, search, protocol, hash
     if (event.target.pathname) {
       pathname = event.target.pathname
@@ -47,14 +48,18 @@ module.exports = function (options) {
     }
 
     if (pathname && sameHost && (protocol === 'http:' || protocol === 'https:' || protocol === 'file:')) {
-      event.preventDefault()
-      if (hash) {
+      if (hash && samePath) {
+        event.preventDefault()
         smoothScroll.animateScroll(hash)
         return false
       }
       var navigated = Router.navigate(pathname + search + hash)
       // Scroll to top to match normal anchor click behavior
-      options.window.scrollTo(0, 0)
+      if (hash) {
+        setTimeout(() => smoothScroll.animateScroll(hash), 33)
+      } else {
+        options.window.scrollTo(0, 0)
+      }
       // it would be nice if it only preventedDefault and returned false if it actually hit a route!
       return false
     }
