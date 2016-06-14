@@ -22,14 +22,14 @@ module.exports = function (options) {
   var engines = {}
 
   var linkHandler = function (event) {
-    var sameHost = event.target.host ? document.location.host === event.target.host : true
-    var samePath = event.target.pathname ? document.location.pathname === event.target.pathname : true
-    var pathname, search, protocol, hash
+    var pathname, search, protocol, hash, sameHost, samePath
     if (event.target.pathname) {
       pathname = event.target.pathname
       search = event.target.search
       protocol = event.target.protocol
       hash = event.target.hash
+      sameHost = event.target.host ? document.location.host === event.target.host : true
+      samePath = pathname ? document.location.pathname === pathname : true
     } else {
       var findInParent = function (element) {
         var _parentElement = element.parentElement
@@ -39,6 +39,8 @@ module.exports = function (options) {
             search = _parentElement.search
             protocol = _parentElement.protocol
             hash = _parentElement.hash
+            sameHost = _parentElement.host ? document.location.host === _parentElement.host : true
+            samePath = pathname ? document.location.pathname === pathname : true
           } else {
             findInParent(_parentElement)
           }
@@ -46,7 +48,6 @@ module.exports = function (options) {
       }
       findInParent(event.target)
     }
-
     if (pathname && sameHost && (protocol === 'http:' || protocol === 'https:' || protocol === 'file:')) {
       if (hash && samePath) {
         event.preventDefault()
