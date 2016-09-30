@@ -1,8 +1,8 @@
 const async = require('async')
 
-module.exports = function browserExpress ({incomingMessage = {}, window, document, abstractNavigation, wantsPostReplay, interceptFormSubmit, interceptLinks}) {
-  if (window && window.incomingMessage) {
-    incomingMessage = window.incomingMessage
+module.exports = function browserExpress ({environment = {}, window, document, abstractNavigation, wantsPostReplay, interceptFormSubmit, interceptLinks}) {
+  if (window && window.environment) {
+    environment = window.environment
   }
 
   const prouter = require('./prouter')({ document, window }) // waiting for pull request to be accepted
@@ -99,9 +99,9 @@ module.exports = function browserExpress ({incomingMessage = {}, window, documen
         handler = arguments[2]
       }
       Router.get(route, function (req) {
-        for (var attrname in incomingMessage) {
+        for (var attrname in environment) {
           if (!req[attrname]) {
-            req[attrname] = incomingMessage[attrname]
+            req[attrname] = environment[attrname]
           }
         }
         async.each(stack, function (fn, callback) {
@@ -125,9 +125,9 @@ module.exports = function browserExpress ({incomingMessage = {}, window, documen
         handler = arguments[2]
       }
       Router.post(action, function (req) {
-        for (var attrname in incomingMessage) {
+        for (var attrname in environment) {
           if (!req[attrname]) {
-            req[attrname] = incomingMessage[attrname]
+            req[attrname] = environment[attrname]
           }
         }
         async.each(stack, function (fn, callback) {

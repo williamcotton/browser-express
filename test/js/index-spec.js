@@ -14,7 +14,7 @@ jsdom.jQueryify(window, 'http://code.jquery.com/jquery-2.1.1.js', function () {
   test('browser-express', function (t) {
     var domRoute, app, server
 
-    window.incomingMessage = {test: 123}
+    window.environment = {test: 123}
 
     var appOptions = {
       document,
@@ -61,11 +61,11 @@ jsdom.jQueryify(window, 'http://code.jquery.com/jquery-2.1.1.js', function () {
       domRoute(route.replace(':value', paramsValue) + '?value=' + queryValue, function ($) {})
     })
 
-    t.test('incomingMessage', function (t) {
+    t.test('environment', function (t) {
       var route = '/test'
       t.plan(1)
       app.get(route, function (req, res) {
-        t.equal(req.test, 123, 'req.test from incomingMessage')
+        t.equal(req.test, 123, 'req.test from environment')
       })
       domRoute(route, function ($) {})
     })
@@ -428,11 +428,11 @@ jsdom.jQueryify(window, 'http://code.jquery.com/jquery-2.1.1.js', function () {
       server = app.listen()
     })
 
-    t.test('fires POST on incomingMessage', function (t) {
+    t.test('fires POST on environment', function (t) {
       server.close()
       var paramsValue = '456'
       var body = body
-      window.incomingMessage = {method: 'POST', body: body}
+      window.environment = {method: 'POST', body: body}
       window.location.href = '/test/' + paramsValue
       app = browserExpress({
         document,

@@ -411,7 +411,7 @@ const prouter = ({ document, window }) => {
      * @return {string} The current path.
      */
     Router.getCurrent = function () {
-      var method = window.incomingMessage && window.incomingMessage.method ? window.incomingMessage.method : 'GET'
+      var method = window.environment && window.environment.method ? window.environment.method : 'GET'
       var path
       if (Router._usePushState || !Router._wantsHashChange) {
         path = decodeURI(window.location.pathname + window.location.search)
