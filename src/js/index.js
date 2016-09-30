@@ -1,16 +1,12 @@
 const async = require('async')
 
-const prouter = require('./prouter') // waiting for pull request to be accepted
-const Router = prouter.Router
-
-module.exports = function browserExpress (options) {
-  options = options || {}
-
-  let incomingMessage = options.incomingMessage || {}
-
-  if (options.window && options.window.incomingMessage) {
-    incomingMessage = options.window.incomingMessage
+module.exports = function browserExpress ({incomingMessage = {}, window, document, abstractNavigation, wantsPostReplay, interceptFormSubmit, interceptLinks}) {
+  if (window && window.incomingMessage) {
+    incomingMessage = window.incomingMessage
   }
+
+  const prouter = require('./prouter')({ document, window }) // waiting for pull request to be accepted
+  const Router = prouter.Router
 
   const store = {}
 
@@ -51,19 +47,19 @@ module.exports = function browserExpress (options) {
       event.preventDefault()
       var navigated = Router.navigate(pathname + search + hash)
       // Scroll to top to match normal anchor click behavior
-      options.window.scrollTo(0, 0)
+      window.scrollTo(0, 0)
       // it would be nice if it only preventedDefault and returned false if it actually hit a route!
       return false
     }
   }
 
-  if (options.interceptLinks) {
-    options.document.body.addEventListener('click', linkHandler, true)
+  if (interceptLinks) {
+    document.body.addEventListener('click', linkHandler, true)
   }
 
   var res = {
     send: function (content) {
-      options.document.body.innerHTML = content
+      document.body.innerHTML = content
       res.writeHead(200)
       res.onComplete(content)
       return content
@@ -73,13 +69,13 @@ module.exports = function browserExpress (options) {
       res.onComplete(view, locals)
       if (store['view engine']) {
         var engineFunction = engines[store['view engine']]
-        engineFunction(view, locals, options)
+        engineFunction(view, locals, { document, window })
       }
     },
     setHeader: function () {},
     loadPage: function (path) {
       res.writeHead(200)
-      options.window.location = path
+      window.location = path
     },
     writeHead: function (statusCode) {},
     onComplete: function () {
@@ -159,12 +155,12 @@ module.exports = function browserExpress (options) {
     listen: function listen (callback) {
       var router = Router.listen({
         root: '/', // base path for the handlers.
-        usePushState: !options.abstractNavigation, // is pushState of history API desired?
-        hashChange: !options.abstractNavigation, // is hashChange desired?
+        usePushState: !abstractNavigation, // is pushState of history API desired?
+        hashChange: !abstractNavigation, // is hashChange desired?
         silent: false, // don't try to load handlers for the current path?
-        abstractNavigation: options.abstractNavigation,
-        wantsPostReplay: options.wantsPostReplay,
-        usePost: options.interceptFormSubmit || false // should listen for all submit events on post?
+        abstractNavigation,
+        wantsPostReplay,
+        usePost: interceptFormSubmit || false // should listen for all submit events on post?
       })
       if (callback) {
         callback()
@@ -172,8 +168,8 @@ module.exports = function browserExpress (options) {
       return {
         close: function close () {
           Router.stop()
-          if (options.interceptLinks) {
-            options.document.body.removeEventListener('click', linkHandler, true)
+          if (interceptLinks) {
+            document.body.removeEventListener('click', linkHandler, true)
           }
         },
         router: router

@@ -1,8 +1,7 @@
 /**
  * Unobtrusive, forward-thinking and lightweight JavaScript router library.
  */
-var prouter
-;(function (prouter) {
+const prouter = ({ document, window }) => {
   /**
   * Serializes an HTML Form Element to an object.
   * @param {FormElement} The form element to parse.
@@ -680,6 +679,8 @@ var prouter
     return RouteGroup
   })()
   prouter.RouteGroup = RouteGroup
-})(prouter || (prouter = {}))
-// # sourceMappingURL=prouter.js.map
+
+  return prouter
+}
+
 module.exports = prouter

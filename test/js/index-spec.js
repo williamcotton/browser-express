@@ -2,25 +2,23 @@ var test = require('tapes')
 var jsdom = require('jsdom')
 var ejs = require('ejs')
 
-if (!global.document) {
-  global.document = jsdom.jsdom('<!doctype html><html><body><div id="universal-app-container"></div></body></html>')
-  global.window = global.document.parentWindow
-  global.navigator = {
-    userAgent: 'node.js'
-  }
+const document = jsdom.jsdom('<!doctype html><html><body><div id="universal-app-container"></div></body></html>')
+const window = document.defaultView
+window.navigator = {
+  userAgent: 'node.js'
 }
 
 var browserExpress = require('../../src/js/index.js')
 
-jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', function () {
+jsdom.jQueryify(window, 'http://code.jquery.com/jquery-2.1.1.js', function () {
   test('browser-express', function (t) {
     var domRoute, app, server
 
-    global.window.incomingMessage = {test: 123}
+    window.incomingMessage = {test: 123}
 
     var appOptions = {
-      document: global.document,
-      window: global.window,
+      document,
+      window,
       interceptLinks: true,
       interceptFormSubmit: true,
       silent: true
@@ -31,7 +29,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       server = app.listen()
       domRoute = function (route, callback) {
         app.navigate(route)
-        callback(global.window.$)
+        callback(window.$)
       }
       t.end()
     })
@@ -42,7 +40,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
     })
 
     t.test('browserExpress no params', function (t) {
-      var _app = browserExpress()
+      var _app = browserExpress({})
       t.ok(_app.get, 'has get')
       t.ok(_app.set, 'has set')
       t.end()
@@ -277,9 +275,9 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var route = '/test2'
       var username = 'test'
       t.plan(2)
-      app.engine('ejs', function (view, locals, globals) {
+      app.engine('ejs', function (view, locals, { document }) {
         var content = ejs.render(view, locals, {})
-        globals.document.body.innerHTML = content
+        document.body.innerHTML = content
       })
       app.set('view engine', 'ejs')
       app.get(route, function (req, res) {
@@ -296,9 +294,9 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var route2 = '/test4'
       var view = "<a href='" + route2 + "'>test</a>"
       t.plan(3)
-      app.engine('ejs', function (view, locals, globals) {
+      app.engine('ejs', function (view, locals, { document }) {
         var content = ejs.render(view, locals, {})
-        globals.document.body.innerHTML = content
+        document.body.innerHTML = content
       })
       app.set('view engine', 'ejs')
       app.get(route1, function (req, res) {
@@ -310,7 +308,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
         res.send('ok')
       })
       domRoute(route1, function ($) {
-        var link = global.window.$('a')
+        var link = window.$('a')
         t.equal(link.attr('href'), route2, 'href matches route')
         var event = document.createEvent('Event')
         event.initEvent('click', true, true)
@@ -323,9 +321,9 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var action = '/test6'
       var view = "<form action='" + action + "'><input type='text' name='username' value='alex' /></form>"
       t.plan(3)
-      app.engine('ejs', function (view, locals, globals) {
+      app.engine('ejs', function (view, locals, { document }) {
         var content = ejs.render(view, locals, {})
-        globals.document.body.innerHTML = content
+        document.body.innerHTML = content
       })
       app.set('view engine', 'ejs')
       app.get(route, function (req, res) {
@@ -337,7 +335,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
         res.send('ok')
       })
       domRoute(route, function ($) {
-        var form = global.window.$('form')
+        var form = window.$('form')
         t.equal(form.attr('action'), action, 'actions match')
         var event = document.createEvent('Event')
         event.initEvent('submit', true, true)
@@ -352,9 +350,9 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       var route = '/test'
       var title = 'test'
       t.plan(2)
-      app.engine('ejs', function (view, locals, globals) {
+      app.engine('ejs', function (view, locals, { document }) {
         var content = ejs.render(view, locals, {})
-        globals.document.body.innerHTML = content
+        document.body.innerHTML = content
       })
       app.set('view engine', 'ejs')
       app.get(route, function (req, res) {
@@ -413,10 +411,10 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
     t.test('fires GET', function (t) {
       server.close()
       var paramsValue = '456'
-      global.window.location.href = '/test2/' + paramsValue
+      window.location.href = '/test2/' + paramsValue
       app = browserExpress({
-        document: global.document,
-        window: global.window,
+        document,
+        window,
         interceptLinks: true,
         interceptFormSubmit: true,
         usePushState: true,
@@ -434,11 +432,11 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       server.close()
       var paramsValue = '456'
       var body = body
-      global.window.incomingMessage = {method: 'POST', body: body}
-      global.window.location.href = '/test/' + paramsValue
+      window.incomingMessage = {method: 'POST', body: body}
+      window.location.href = '/test/' + paramsValue
       app = browserExpress({
-        document: global.document,
-        window: global.window,
+        document,
+        window,
         interceptLinks: true,
         interceptFormSubmit: true,
         usePushState: true,
@@ -456,8 +454,8 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
     t.test('app.submit with no push', function (t) {
       server.close()
       app = browserExpress({
-        document: global.document,
-        window: global.window,
+        document,
+        window,
         interceptLinks: true,
         interceptFormSubmit: true,
         usePushState: true,
@@ -482,7 +480,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       })
       app.submit(action, form, function () {
         app.navigate('/tt', function() {
-          global.window.history.back()
+          window.history.back()
         })
       })
     })
@@ -490,8 +488,8 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
     t.test('app.submit with push but no replay', function (t) {
       server.close()
       app = browserExpress({
-        document: global.document,
-        window: global.window,
+        document,
+        window,
         interceptLinks: true,
         interceptFormSubmit: true,
         usePushState: true,
@@ -516,7 +514,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       })
       app.submit(action, form, function () {
         app.navigate('/tt', function() {
-          global.window.history.back()
+          window.history.back()
         })
       })
     })
@@ -524,8 +522,8 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
     t.test('app.submit with push and replay', function (t) {
       server.close()
       app = browserExpress({
-        document: global.document,
-        window: global.window,
+        document,
+        window,
         interceptLinks: true,
         interceptFormSubmit: true,
         usePushState: true,
@@ -550,7 +548,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       })
       app.submit(action, form, function () {
         app.navigate('/tt', function() {
-          global.window.history.back()
+          window.history.back()
         })
       })
     })
@@ -558,8 +556,8 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
     t.test('app.submit with global replay', function (t) {
       server.close()
       app = browserExpress({
-        document: global.document,
-        window: global.window,
+        document,
+        window,
         interceptLinks: true,
         interceptFormSubmit: true,
         usePushState: true,
@@ -585,7 +583,7 @@ jsdom.jQueryify(global.window, 'http://code.jquery.com/jquery-2.1.1.js', functio
       })
       app.submit(action, form, function () {
         app.navigate('/tt', function () {
-          global.window.history.back()
+          window.history.back()
         })
       })
     })
