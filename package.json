@@ -1,6 +1,6 @@
 {
   "name": "browser-express",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Fast, unopinionated, minimalist browser framework",
   "main": "src/js/index.js",
   "scripts": {
@@ -24,12 +24,12 @@
   },
   "homepage": "https://github.com/williamcotton/browser-express#readme",
   "devDependencies": {
-    "jsdom": "^3.1.2",
+    "jsdom": "^9.5.0",
     "tap-spec": "^4.1.0",
-    "tapes": "^2.0.0",
+    "tapes": "^4.1.0",
     "ejs": "^2.3.3"
   },
   "dependencies": {
-    "async": "^1.4.2"
+    "async": "^2.0.1"
   }
 }

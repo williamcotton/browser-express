@@ -1,28 +1,27 @@
-var async = require('async')
-var smoothScroll = require('./smooth-scroll')
+const async = require('async')
 
-var prouter = require('./prouter') // waiting for pull request to be accepted
-var Router = prouter.Router
+const prouter = require('./prouter') // waiting for pull request to be accepted
+const Router = prouter.Router
 
-module.exports = function (options) {
+module.exports = function browserExpress (options) {
   options = options || {}
 
-  var incomingMessage = options.incomingMessage || {}
+  let incomingMessage = options.incomingMessage || {}
 
   if (options.window && options.window.incomingMessage) {
     incomingMessage = options.window.incomingMessage
   }
 
-  var store = {}
+  const store = {}
 
-  var stack = []
+  const stack = []
 
-  var completeCallbacks = []
+  const completeCallbacks = []
 
-  var engines = {}
+  const engines = {}
 
-  var linkHandler = function (event) {
-    var pathname, search, protocol, hash, sameHost, samePath
+  var linkHandler = function linkHandler (event) {
+    let pathname, search, protocol, hash, sameHost, samePath
     if (event.target.pathname) {
       pathname = event.target.pathname
       search = event.target.search
@@ -49,18 +48,10 @@ module.exports = function (options) {
       findInParent(event.target)
     }
     if (pathname && sameHost && (protocol === 'http:' || protocol === 'https:' || protocol === 'file:')) {
-      if (hash && samePath) {
-        event.preventDefault()
-        smoothScroll.animateScroll(hash)
-        return false
-      }
+      event.preventDefault()
       var navigated = Router.navigate(pathname + search + hash)
       // Scroll to top to match normal anchor click behavior
-      if (hash) {
-        setTimeout(function () { smoothScroll.animateScroll(hash) }, 33)
-      } else {
-        options.window.scrollTo(0, 0)
-      }
+      options.window.scrollTo(0, 0)
       // it would be nice if it only preventedDefault and returned false if it actually hit a route!
       return false
     }
@@ -101,7 +92,7 @@ module.exports = function (options) {
   }
 
   var app = {
-    get: function (route, handler) {
+    get: function get (route, handler) {
       var middleware
       if (arguments.length === 1 && typeof (route) === 'string') {
         var key = route
@@ -130,7 +121,7 @@ module.exports = function (options) {
         })
       })
     },
-    post: function (action, handler) {
+    post: function post (action, handler) {
       var middleware
       if (arguments.length === 3) {
         action = arguments[0]
@@ -156,16 +147,16 @@ module.exports = function (options) {
         })
       })
     },
-    set: function (key, value) {
+    set: function set (key, value) {
       store[key] = value
     },
-    engine: function (engineKey, fn) {
+    engine: function engine (engineKey, fn) {
       engines[engineKey] = fn
     },
-    use: function (fn) {
+    use: function use (fn) {
       stack.push(fn)
     },
-    listen: function (callback) {
+    listen: function listen (callback) {
       var router = Router.listen({
         root: '/', // base path for the handlers.
         usePushState: !options.abstractNavigation, // is pushState of history API desired?
@@ -179,7 +170,7 @@ module.exports = function (options) {
         callback()
       }
       return {
-        close: function () {
+        close: function close () {
           Router.stop()
           if (options.interceptLinks) {
             options.document.body.removeEventListener('click', linkHandler, true)
@@ -188,7 +179,7 @@ module.exports = function (options) {
         router: router
       }
     },
-    navigate: function (route, callback) {
+    navigate: function navigate (route, callback) {
       if (callback) {
         completeCallbacks.push(callback)
       } else {
@@ -196,7 +187,7 @@ module.exports = function (options) {
       }
       Router.navigate(route)
     },
-    submit: function (action, body, callback) {
+    submit: function submit (action, body, callback) {
       if (callback) {
         completeCallbacks.push(callback)
       } else {
