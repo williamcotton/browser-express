@@ -26,11 +26,16 @@ jsdom.jQueryify(window, 'http://code.jquery.com/jquery-2.1.1.js', function () {
 
     t.beforeEach(function (t) {
       app = browserExpress(appOptions)
-      server = app.listen()
+
       domRoute = function (route, callback) {
         app.navigate(route)
         callback(window.$)
       }
+
+      server = app.listen(() => {
+        app.navigate('/')
+      })
+
       t.end()
     })
 

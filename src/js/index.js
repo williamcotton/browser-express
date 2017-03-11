@@ -17,14 +17,16 @@ module.exports = function browserExpress ({environment = {}, window, document, a
   const engines = {}
 
   var linkHandler = function linkHandler (event) {
-    let pathname, search, protocol, hash, sameHost, samePath
+    let pathname, search, protocol, hash, sameHost, samePathname, sameSearch, sameHash
     if (event.target.pathname) {
       pathname = event.target.pathname
       search = event.target.search
       protocol = event.target.protocol
       hash = event.target.hash
       sameHost = event.target.host ? document.location.host === event.target.host : true
-      samePath = pathname ? document.location.pathname === pathname : true
+      samePathname = pathname ? document.location.pathname === pathname : true
+      sameSearch = search ? document.location.search === search : true
+      sameHash = hash ? document.location.hash === hash : true
     } else {
       var findInParent = function (element) {
         var _parentElement = element.parentElement
@@ -35,7 +37,9 @@ module.exports = function browserExpress ({environment = {}, window, document, a
             protocol = _parentElement.protocol
             hash = _parentElement.hash
             sameHost = _parentElement.host ? document.location.host === _parentElement.host : true
-            samePath = pathname ? document.location.pathname === pathname : true
+            samePathname = pathname ? document.location.pathname === pathname : true
+            sameSearch = search ? document.location.search === search : true
+            sameHash = hash ? document.location.hash === hash : true
           } else {
             findInParent(_parentElement)
           }
@@ -43,9 +47,12 @@ module.exports = function browserExpress ({environment = {}, window, document, a
       }
       findInParent(event.target)
     }
+
     if (pathname && sameHost && (protocol === 'http:' || protocol === 'https:' || protocol === 'file:')) {
       event.preventDefault()
-      var navigated = Router.navigate(pathname + search + hash)
+      if (!(samePathname && sameSearch && sameHash)) {
+        Router.navigate(pathname + search + hash)
+      }
       // Scroll to top to match normal anchor click behavior
       window.scrollTo(0, 0)
       // it would be nice if it only preventedDefault and returned false if it actually hit a route!
