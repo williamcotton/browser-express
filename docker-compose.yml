@@ -1,0 +1,19 @@
+version: '3'
+services:
+  test:
+    build: .
+    ports:
+     - "8000:8000"
+    volumes:
+     - .:/code
+    links:
+     - chrome
+    depends_on:
+     - chrome
+  chrome:
+    image: yukinying/chrome-headless-browser:latest
+    ports:
+     - "9222:9222"
+    shm_size: 1024m
+    cap_add: 
+     - SYS_ADMIN
