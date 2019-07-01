@@ -1,9 +1,11 @@
-/* global window */
+/* global window, document */
 
 const BaseRouter = require('router');
 const inherits = require('inherits');
 const url = require('url');
 const qs = require('qs');
+const catchLinks = require('catch-links');
+const serialize = require('form-serialize');
 
 const Request = require('./request');
 const Response = require('./response');
@@ -40,6 +42,24 @@ function Router(options) {
 
   // Replace and reload on unhandled request
   this.reloadOnUnhandled = !!opts.reloadOnUnhandled;
+
+  if (opts.interceptLinks) {
+    catchLinks(window, href => {
+      r.navigate(href);
+    });
+  }
+
+  if (opts.interceptFormSubmit) {
+    document.body.addEventListener(
+      'submit',
+      e => {
+        e.preventDefault();
+        const body = serialize(e.target, { hash: true });
+        r.submit(e.target.action, e.target.method, body);
+      },
+      true
+    );
+  }
 
   return r;
 }
