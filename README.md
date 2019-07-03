@@ -24,7 +24,7 @@ app.get('/test/:value', (req, res) => {
   res.send(`Value: ${value}`);
 });
 
-var server = app.listen({}, () => {
+const server = app.listen({}, () => {
   console.log('app is listening');
 });
 

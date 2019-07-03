@@ -52,6 +52,7 @@ Response.prototype.send = function send(content) {
     window.history[replace ? 'replaceState' : 'pushState'](locationState, title, URL);
     // TODO: https://developers.google.com/web/updates/2015/09/history-api-scroll-restoration
     if (!replace) window.scrollTo(0, 0);
+    this.emit('finish');
   }
 };
 
