@@ -169,6 +169,7 @@ Router.prototype.processRequest = function processRequest(locationState, replace
   req.baseUrl = this.base;
   req.path = path;
   req.url = this.currentLocation + nextLocationState.hash;
+  req.headers.referer = `${req.protocol}://${req.hostname}:${req.port}${prevLocation}`;
   if (nextLocationState.body) req.body = nextLocationState.body;
 
   // Create the response object

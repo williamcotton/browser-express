@@ -15,6 +15,7 @@ function Request() {
   this.path = null;
   this.hostname = location.hostname;
   this.protocol = location.protocol.slice(0, location.protocol.length - 1);
+  this.port = location.port;
   this.secure = this.protocol === 'https';
   this.subdomains = this.hostname
     .split('.')
