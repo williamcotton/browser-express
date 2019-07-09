@@ -21,7 +21,7 @@ function Response() {
 
 inherits(Response, EventEmitter);
 
-Response.prototype.redirect = function redirect(arg1, arg2) {
+Response.prototype.redirect = function redirect(arg1, arg2, replace) {
   let path;
   let status;
   if (typeof arg1 === 'string') {
@@ -34,7 +34,7 @@ Response.prototype.redirect = function redirect(arg1, arg2) {
 
   this.status(status);
 
-  this.app.processRequest(url.parse(path), false);
+  this.app.processRequest(url.parse(path), replace);
 
   this.emit('finish');
 };
