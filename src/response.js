@@ -21,11 +21,17 @@ function Response() {
 
 inherits(Response, EventEmitter);
 
-Response.prototype.redirect = function redirect(arg1, arg2, replace) {
+Response.prototype.redirect = function redirect(arg1, arg2) {
   let path;
   let status;
+  let replace = false;
   if (typeof arg1 === 'string') {
-    path = arg1;
+    if (arg1 === 'back') {
+      path = this.prevLocation;
+      replace = true;
+    } else {
+      path = arg1;
+    }
     status = 302;
   } else {
     path = arg2;
