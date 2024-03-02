@@ -25,12 +25,15 @@ Response.prototype.redirect = function redirect(arg1, arg2) {
   let path;
   let status;
   let replace = false;
-  if (typeof arg1 === 'string') {
-    if (arg1 === 'back') {
+  if (typeof arg1 === "string") {
+    if (arg1 === "back") {
       path = this.prevLocation;
       replace = true;
     } else {
       path = arg1;
+      if (arg2) {
+        replace = arg2;
+      }
     }
     status = 302;
   } else {

@@ -1,6 +1,6 @@
 {
   "name": "browser-express",
-  "version": "4.7.0",
+  "version": "4.8.0",
   "description": "Fast, unopinionated, minimalist browser framework",
   "main": "src/index.js",
   "scripts": {
@@ -35,6 +35,6 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "mochify": "^9.2.0",
-    "npm-check-updates": "^16.14.11"
+    "npm-check-updates": "^16.14.15"
   }
 }
