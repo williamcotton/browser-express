@@ -55,4 +55,49 @@ describe('browser-express', () => {
 
     assert.equal(window.document.body.innerHTML, content);
   });
+
+  it('handles edge cases and errors', async () => {
+    app.get('/error', (req, res) => {
+      throw new Error('Test error');
+    });
+
+    try {
+      await app.navigate('/error');
+    } catch (e) {
+      assert.equal(e.message, 'Test error');
+    }
+  });
+
+  it('intercepts links', async () => {
+    app = express({ interceptLinks: true });
+    await app.listen({}, () => {});
+
+    const link = document.createElement('a');
+    link.href = '/test-link';
+    document.body.appendChild(link);
+
+    app.get('/test-link', (req, res) => {
+      res.send('Link intercepted');
+    });
+
+    link.click();
+
+    assert.equal(window.document.body.innerHTML, 'Link intercepted');
+  });
+
+  it('handles different HTTP methods', async () => {
+    app.put('/test-put', (req, res) => {
+      res.send('PUT request');
+    });
+
+    app.delete('/test-delete', (req, res) => {
+      res.send('DELETE request');
+    });
+
+    await app.submit('/test-put', 'put', {});
+    assert.equal(window.document.body.innerHTML, 'PUT request');
+
+    await app.submit('/test-delete', 'delete', {});
+    assert.equal(window.document.body.innerHTML, 'DELETE request');
+  });
 });
