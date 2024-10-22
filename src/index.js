@@ -201,4 +201,16 @@ Router.prototype.close = function close() {
   window.removeEventListener('popstate', this.onPopstate, false);
 };
 
-module.exports = Router;
+function createApplication() {
+  const app = new Router();
+
+  // Expose the Router constructor
+  app.Router = Router;
+
+  return app;
+}
+
+// Expose the Router constructor directly on the module exports
+createApplication.Router = Router;
+
+module.exports = createApplication;
