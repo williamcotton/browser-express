@@ -246,4 +246,93 @@ describe("browser-express additional tests", () => {
     await app.navigate("/multi-specific-middleware");
     assert.equal(document.body.innerHTML, "Middleware 1 Middleware 2");
   });
+
+ it("handles URL encoded form submissions", async () => {
+   app.post("/form-submit", (req, res) => {
+     assert.equal(req.body.user, "test user");
+     assert.equal(req.body.email, "test@example.com");
+     res.send("Form submission successful");
+   });
+
+   await app.submit("/form-submit", "post", {
+     user: "test user",
+     email: "test@example.com",
+   });
+   assert.equal(document.body.innerHTML, "Form submission successful");
+ });
+
+ it("preserves query parameters during redirects", async () => {
+   app.get("/redirect-with-query", (req, res) => {
+     assert.equal(req.query.param, "test");
+     res.redirect("/target-with-query?param=test");
+   });
+
+   app.get("/target-with-query", (req, res) => {
+     assert.equal(req.query.param, "test");
+     res.send("Query preserved");
+   });
+
+   await app.navigate("/redirect-with-query?param=test");
+   assert.equal(document.body.innerHTML, "Query preserved");
+ });
+
+ it("processes request headers correctly", async () => {
+   app.get("/headers", (req, res) => {
+     assert.equal(req.get("referrer"), document.referrer);
+     assert.equal(req.get("content-type"), document.contentType);
+     res.send("Headers processed");
+   });
+
+   await app.navigate("/headers");
+ });
+
+ it("handles status codes properly", async () => {
+   app.get("/status", (req, res) => {
+     res.status(201).send("Created");
+   });
+
+   await app.navigate("/status");
+   assert.equal(document.body.innerHTML, "Created");
+ });
+
+ it("maintains local variables correctly", async () => {
+   app.use((req, res, next) => {
+     res.locals.testVar = "test value";
+     next();
+   });
+
+   app.get("/locals", (req, res) => {
+     assert.equal(res.locals.testVar, "test value");
+     res.send("Locals maintained");
+   });
+
+   await app.navigate("/locals");
+ });
+
+ it("handles multiple redirects in sequence", async () => {
+   app.get("/redirect1", (req, res) => {
+     res.redirect("/redirect2");
+   });
+
+   app.get("/redirect2", (req, res) => {
+     res.redirect("/redirect3");
+   });
+
+   app.get("/redirect3", (req, res) => {
+     res.send("Final destination");
+   });
+
+   await app.navigate("/redirect1");
+   assert.equal(document.body.innerHTML, "Final destination");
+   assert.equal(window.location.pathname, "/redirect3");
+ });
+
+ it("handles request subdomains correctly", async () => {
+   app.get("/subdomains", (req, res) => {
+     assert.ok(Array.isArray(req.subdomains));
+     res.send("Subdomains processed");
+   });
+
+   await app.navigate("/subdomains");
+ });
 });
