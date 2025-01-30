@@ -1,12 +1,11 @@
-const assert = require("assert");
 const express = require("../src/index");
 
-describe("browser-express additional tests", () => {
+describe("browser-express", () => {
   let app;
 
   beforeEach(async () => {
     if (app) {
-      window.history.pushState("/", null, "/");
+      window.history.pushState({}, '', "/");
       await app.close();
     }
     app = express();
@@ -31,7 +30,7 @@ describe("browser-express additional tests", () => {
     });
 
     app.get("/test-middleware", (req, res) => {
-      assert.equal(middlewareCount, 2);
+      expect(middlewareCount).toBe(2);
       res.send("Middleware test passed");
     });
 
@@ -40,8 +39,8 @@ describe("browser-express additional tests", () => {
 
   it("handles GET requests with route parameters", async () => {
     app.get("/user/:id/profile/:section", (req, res) => {
-      assert.equal(req.params.id, "123");
-      assert.equal(req.params.section, "about");
+      expect(req.params.id).toBe("123");
+      expect(req.params.section).toBe("about");
       res.send("Route parameters test passed");
     });
 
@@ -50,8 +49,8 @@ describe("browser-express additional tests", () => {
 
   it("handles GET requests with query parameters", async () => {
     app.get("/search", (req, res) => {
-      assert.equal(req.query.q, "test query");
-      assert.equal(req.query.page, "2");
+      expect(req.query.q).toBe("test query");
+      expect(req.query.page).toBe("2");
       res.send("Query parameters test passed");
     });
 
@@ -60,7 +59,7 @@ describe("browser-express additional tests", () => {
 
   it("handles POST requests with JSON body", async () => {
     app.post("/api/data", (req, res) => {
-      assert.deepEqual(req.body, { name: "John Doe", age: 30 });
+      expect(req.body).toEqual({ name: "John Doe", age: 30 });
       res.send("POST with JSON body test passed");
     });
 
@@ -69,8 +68,8 @@ describe("browser-express additional tests", () => {
 
   it("handles PUT requests", async () => {
     app.put("/api/update/:id", (req, res) => {
-      assert.equal(req.params.id, "456");
-      assert.deepEqual(req.body, { status: "updated" });
+      expect(req.params.id).toBe("456");
+      expect(req.body).toEqual({ status: "updated" });
       res.send("PUT request test passed");
     });
 
@@ -79,7 +78,7 @@ describe("browser-express additional tests", () => {
 
   it("handles DELETE requests", async () => {
     app.delete("/api/remove/:id", (req, res) => {
-      assert.equal(req.params.id, "789");
+      expect(req.params.id).toBe("789");
       res.send("DELETE request test passed");
     });
 
@@ -96,21 +95,23 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/redirect");
-    assert.equal(window.location.pathname, "/target");
+    expect(window.location.pathname).toBe("/target");
   });
 
   it("handles 404 Not Found", async () => {
-    app.use((req, res, next) => {
+    app.use((req, res) => {
       res.status(404).send("404 Not Found");
     });
 
     await app.navigate("/non-existent-route");
-    assert.equal(document.body.innerHTML, "404 Not Found");
+    expect(document.body.innerHTML).toBe("404 Not Found");
   });
 
   it("handles error middleware", async () => {
+    const testError = new Error("Test error");
+    
     app.get("/error", (req, res, next) => {
-      next(new Error("Test error"));
+      next(testError);
     });
 
     app.use((err, req, res, next) => {
@@ -118,7 +119,7 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/error");
-    assert.equal(document.body.innerHTML, "Error: Test error");
+    expect(document.body.innerHTML).toBe("Error: Test error");
   });
 
   it("handles chained route handlers", async () => {
@@ -135,13 +136,13 @@ describe("browser-express additional tests", () => {
       });
 
     await app.navigate("/api/resource");
-    assert.equal(document.body.innerHTML, "GET resource");
+    expect(document.body.innerHTML).toBe("GET resource");
 
     await app.submit("/api/resource", "post");
-    assert.equal(document.body.innerHTML, "POST resource");
+    expect(document.body.innerHTML).toBe("POST resource");
 
     await app.submit("/api/resource", "put");
-    assert.equal(document.body.innerHTML, "PUT resource");
+    expect(document.body.innerHTML).toBe("PUT resource");
   });
 
   it("respects route order", async () => {
@@ -154,10 +155,10 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/order/specific");
-    assert.equal(document.body.innerHTML, "Specific route");
+    expect(document.body.innerHTML).toBe("Specific route");
 
     await app.navigate("/order/other");
-    assert.equal(document.body.innerHTML, "Param route");
+    expect(document.body.innerHTML).toBe("Param route");
   });
 
   it("handles multiple route parameters", async () => {
@@ -168,7 +169,7 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/multi/one/two/three");
-    assert.equal(document.body.innerHTML, "one-two-three");
+    expect(document.body.innerHTML).toBe("one-two-three");
   });
 
   it("handles query parameters with multiple values", async () => {
@@ -177,7 +178,7 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/multi-query?key=value1&key=value2&key=value3");
-    assert.equal(document.body.innerHTML, "value1,value2,value3");
+    expect(document.body.innerHTML).toBe("value1,value2,value3");
   });
 
   it("handles middleware that modifies the request", async () => {
@@ -191,7 +192,7 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/modified-request");
-    assert.equal(document.body.innerHTML, "Modified by middleware");
+    expect(document.body.innerHTML).toBe("Modified by middleware");
   });
 
   it("handles nested routers", async () => {
@@ -206,7 +207,7 @@ describe("browser-express additional tests", () => {
     app.use("/api", router1);
 
     await app.navigate("/api/subroute/nested");
-    assert.equal(document.body.innerHTML, "Nested route");
+    expect(document.body.innerHTML).toBe("Nested route");
   });
 
   it("handles route-specific middleware", async () => {
@@ -220,7 +221,7 @@ describe("browser-express additional tests", () => {
     });
 
     await app.navigate("/specific-middleware");
-    assert.equal(document.body.innerHTML, "Route-specific middleware");
+    expect(document.body.innerHTML).toBe("Route-specific middleware");
   });
 
   it("handles multiple route-specific middleware", async () => {
@@ -244,95 +245,95 @@ describe("browser-express additional tests", () => {
     );
 
     await app.navigate("/multi-specific-middleware");
-    assert.equal(document.body.innerHTML, "Middleware 1 Middleware 2");
+    expect(document.body.innerHTML).toBe("Middleware 1 Middleware 2");
   });
 
- it("handles URL encoded form submissions", async () => {
-   app.post("/form-submit", (req, res) => {
-     assert.equal(req.body.user, "test user");
-     assert.equal(req.body.email, "test@example.com");
-     res.send("Form submission successful");
-   });
+  it("handles URL encoded form submissions", async () => {
+    app.post("/form-submit", (req, res) => {
+      expect(req.body.user).toBe("test user");
+      expect(req.body.email).toBe("test@example.com");
+      res.send("Form submission successful");
+    });
 
-   await app.submit("/form-submit", "post", {
-     user: "test user",
-     email: "test@example.com",
-   });
-   assert.equal(document.body.innerHTML, "Form submission successful");
- });
+    await app.submit("/form-submit", "post", {
+      user: "test user",
+      email: "test@example.com",
+    });
+    expect(document.body.innerHTML).toBe("Form submission successful");
+  });
 
- it("preserves query parameters during redirects", async () => {
-   app.get("/redirect-with-query", (req, res) => {
-     assert.equal(req.query.param, "test");
-     res.redirect("/target-with-query?param=test");
-   });
+  it("preserves query parameters during redirects", async () => {
+    app.get("/redirect-with-query", (req, res) => {
+      expect(req.query.param).toBe("test");
+      res.redirect("/target-with-query?param=test");
+    });
 
-   app.get("/target-with-query", (req, res) => {
-     assert.equal(req.query.param, "test");
-     res.send("Query preserved");
-   });
+    app.get("/target-with-query", (req, res) => {
+      expect(req.query.param).toBe("test");
+      res.send("Query preserved");
+    });
 
-   await app.navigate("/redirect-with-query?param=test");
-   assert.equal(document.body.innerHTML, "Query preserved");
- });
+    await app.navigate("/redirect-with-query?param=test");
+    expect(document.body.innerHTML).toBe("Query preserved");
+  });
 
- it("processes request headers correctly", async () => {
-   app.get("/headers", (req, res) => {
-     assert.equal(req.get("referrer"), document.referrer);
-     assert.equal(req.get("content-type"), document.contentType);
-     res.send("Headers processed");
-   });
+  it("processes request headers correctly", async () => {
+    app.get("/headers", (req, res) => {
+      expect(req.get("referrer")).toBe(document.referrer);
+      expect(req.get("content-type")).toBe(document.contentType);
+      res.send("Headers processed");
+    });
 
-   await app.navigate("/headers");
- });
+    await app.navigate("/headers");
+  });
 
- it("handles status codes properly", async () => {
-   app.get("/status", (req, res) => {
-     res.status(201).send("Created");
-   });
+  it("handles status codes properly", async () => {
+    app.get("/status", (req, res) => {
+      res.status(201).send("Created");
+    });
 
-   await app.navigate("/status");
-   assert.equal(document.body.innerHTML, "Created");
- });
+    await app.navigate("/status");
+    expect(document.body.innerHTML).toBe("Created");
+  });
 
- it("maintains local variables correctly", async () => {
-   app.use((req, res, next) => {
-     res.locals.testVar = "test value";
-     next();
-   });
+  it("maintains local variables correctly", async () => {
+    app.use((req, res, next) => {
+      res.locals.testVar = "test value";
+      next();
+    });
 
-   app.get("/locals", (req, res) => {
-     assert.equal(res.locals.testVar, "test value");
-     res.send("Locals maintained");
-   });
+    app.get("/locals", (req, res) => {
+      expect(res.locals.testVar).toBe("test value");
+      res.send("Locals maintained");
+    });
 
-   await app.navigate("/locals");
- });
+    await app.navigate("/locals");
+  });
 
- it("handles multiple redirects in sequence", async () => {
-   app.get("/redirect1", (req, res) => {
-     res.redirect("/redirect2");
-   });
+  it("handles multiple redirects in sequence", async () => {
+    app.get("/redirect1", (req, res) => {
+      res.redirect("/redirect2");
+    });
 
-   app.get("/redirect2", (req, res) => {
-     res.redirect("/redirect3");
-   });
+    app.get("/redirect2", (req, res) => {
+      res.redirect("/redirect3");
+    });
 
-   app.get("/redirect3", (req, res) => {
-     res.send("Final destination");
-   });
+    app.get("/redirect3", (req, res) => {
+      res.send("Final destination");
+    });
 
-   await app.navigate("/redirect1");
-   assert.equal(document.body.innerHTML, "Final destination");
-   assert.equal(window.location.pathname, "/redirect3");
- });
+    await app.navigate("/redirect1");
+    expect(document.body.innerHTML).toBe("Final destination");
+    expect(window.location.pathname).toBe("/redirect3");
+  });
 
- it("handles request subdomains correctly", async () => {
-   app.get("/subdomains", (req, res) => {
-     assert.ok(Array.isArray(req.subdomains));
-     res.send("Subdomains processed");
-   });
+  it("handles request subdomains correctly", async () => {
+    app.get("/subdomains", (req, res) => {
+      expect(Array.isArray(req.subdomains)).toBe(true);
+      res.send("Subdomains processed");
+    });
 
-   await app.navigate("/subdomains");
- });
+    await app.navigate("/subdomains");
+  });
 });
